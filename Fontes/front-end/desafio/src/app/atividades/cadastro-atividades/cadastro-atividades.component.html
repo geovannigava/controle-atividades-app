@@ -1,0 +1,113 @@
+<div class="example-container">
+  <form class="example-form form-container" #form="ngForm">
+
+    <mat-form-field class="example-full-width">
+      <input matInput placeholder="Título" value="Digite o Título" name="titulo"
+      [(ngModel)]="atividade.titulo" #titulo="ngModel" required>
+    </mat-form-field>
+
+    <mat-form-field class="example-full-width" >
+      <textarea matInput placeholder="Descrição" value="Digite a Descrição" name="descricao"
+      [(ngModel)]="atividade.descricao" #descricao="ngModel" required></textarea>
+    </mat-form-field>
+
+    <div>
+      <mat-form-field>
+        <mat-select placeholder="Tipo de Atividade" [(value)]="tipoAtividadeSelecionada" required>
+          <mat-option *ngFor="let atv of tipoAtividades" [value]="atv.value">
+            {{atv.viewValue}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+
+    <div *ngIf="!atividade.idAtividade">
+      <button mat-raised-button color="primary" (click)="salvarAtividade(form)"
+      [disabled]="form.invalid">Criar nova Atividade</button>
+    </div>
+    <div *ngIf="atividade.idAtividade">
+      <button mat-raised-button color="accent" [disabled]="form.invalid"
+      (click)="atualizarAtividade(atividade.idAtividade, form)">Alterar Atividade</button>
+    </div>
+  </form>
+  <div class="form-container">
+    <br>
+    <div class="example-selected-value fonte">Tipo de Exibição:</div>
+    <mat-radio-group   [(ngModel)]="exibicaoSelecionada">
+      <mat-radio-button class="example-radio-button" *ngFor="let tp of tiposExibicao"
+      (click)="buscarAtividadesPorStatus(tp.value)" [value]="tp.value">
+        {{tp.descricao}}</mat-radio-button>
+    </mat-radio-group>
+  </div>
+  <div>
+    <br>
+    <div class="example-container mat-elevation-z8">
+      <div class="example-header">
+        <mat-form-field>
+          <input matInput (keyup)="aplicarFiltro($event.target.value)" placeholder="Filtrar">
+        </mat-form-field>
+      </div>
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+          <tr mat-header-row *matHeaderRowDef="rotuloColunasTable"></tr>
+          <tr mat-row *matRowDef="let row; columns: rotuloColunasTable;"></tr>
+        <ng-container matColumnDef="idAtividade">
+          <th mat-header-cell *matHeaderCellDef> Nº </th>
+          <td mat-cell *matCellDef="let atividade" > {{atividade.idAtividade}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="titulo">
+          <th mat-header-cell *matHeaderCellDef> Título </th>
+          <td mat-cell *matCellDef="let atividade"> {{atividade.titulo}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="descricao" >
+          <th mat-header-cell *matHeaderCellDef> Descrição da Atividade </th>
+          <td mat-cell *matCellDef="let atividade" class="mat-column-FileName"> {{atividade.descricao}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef> Status </th>
+          <td mat-cell *matCellDef="let atividade"> {{atividade.status | statusAtividade}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="tipoAtividade">
+          <th mat-header-cell *matHeaderCellDef> Tipo de Atividade </th>
+          <td mat-cell *matCellDef="let atividade"> {{atividade.tipoAtividade | tipoAtividade}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="editar">
+          <th mat-header-cell *matHeaderCellDef> Editar </th>
+          <td mat-cell *matCellDef="let atividade">
+            <button matTooltip="Editar">
+              <mat-icon (click)="selecionarAtividade(atividade)">create</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="finalizar">
+          <th mat-header-cell *matHeaderCellDef> Finalizar </th>
+          <td mat-cell *matCellDef="let atividade">
+            <button *ngIf="verificaStatus(atividade.status)" matTooltip="Alterar Status">
+              <mat-icon (click)="atualizarStatusAtividade(atividade)">build</mat-icon>
+            </button>
+            <button *ngIf="!verificaStatus(atividade.status)" matTooltip="Alterar Status">
+              <mat-icon ng (click)="atualizarStatusAtividade(atividade)">check_circle_outline</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="excluir">
+            <th mat-header-cell *matHeaderCellDef> Excluir </th>
+            <td mat-cell *matCellDef="let atividade">
+              <button matTooltip="Excluir" matTooltipClass="example-tooltip-red">
+                <mat-icon (click)="dialogoConfirmacaoExclusao(atividade)">clear</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+      </table>
+      <mat-paginator [pageSizeOptions]="[10, 15, 20]" showFirstLastButtons></mat-paginator>
+    </div>
+
+  </div>
+
