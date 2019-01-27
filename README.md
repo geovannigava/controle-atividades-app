@@ -4,7 +4,7 @@ Sistema Web para controle de atividades
 
 Exemplo da utilização das Tecnologias:
 
-- Back-end: API Rest com a utilização de Java Servlets, JPA/Hibernate, Maven
+- Back-end: API Rest com a utilização de JAX-WS, JPA/Hibernate, Maven
 - Front-end: Angular 6, Angular Material Framework
 - Banco de dados: Postgres
 
