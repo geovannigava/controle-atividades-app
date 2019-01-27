@@ -3,29 +3,22 @@
     xsi:schemaLocation="http://java.sun.com/xml/ns/persistence 
     http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
     version="2.0">
-
-    <persistence-unit name="desafio">
-
-        <!-- Implementação do JPA, no nosso caso Hibernate -->
-        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-
-        <!-- Aqui são listadas todas as entidades -->
+    <persistence-unit name="desafio" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
         <class>br.com.desafio.model.Atividade</class>
-
         <properties>    
             <!-- Propriedades JDBC -->
             <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
  			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/atividade" ></property>
             <property name="javax.persistence.jdbc.user" value="gava" />
             <property name="javax.persistence.jdbc.password" value="gava" />
-
             <!-- Configurações específicas do Hibernate -->
             <property name="hibernate.dialect" 
                 value="org.hibernate.dialect.PostgreSQLDialect" />
-
             <property name="hibernate.hbm2ddl.auto" value="update" />
             <property name="hibernate.show_sql" value="true" />
             <property name="hibernate.format_sql" value="true" />
+            <property name="hibernate.default_schema" value="atividade" />
         </properties>
     </persistence-unit>
 </persistence>

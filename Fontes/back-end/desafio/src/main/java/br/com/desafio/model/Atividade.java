@@ -10,12 +10,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import br.com.desafio.model.enums.StatusAtividadeEnum;
 import br.com.desafio.model.enums.TipoAtividadeEnum;
 
+@XmlRootElement(name="atividade")
 @Entity
-@Table(name = "tb_atividade", schema = "atividade")
+@Table(name = "atividade", schema = "atividade")
 public class Atividade implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
@@ -26,17 +29,21 @@ public class Atividade implements Serializable{
 	private Long idAtividade;
     
 	@Column(name = "titulo")
+	@NotNull(message = "O campo titulo é Obrigatorio")
 	private String titulo;
 	
 	@Column(name = "descricao")
+	@NotNull(message = "O campo descricao é Obrigatorio")
 	private String descricao;
 	
 	@Column(name = "tipo_atividade")
 	@Enumerated(EnumType.ORDINAL)
+	@NotNull(message = "O campo TipoAtividadeEnum é Obrigatorio")
 	private TipoAtividadeEnum tipoAtividade;
 	
 	@Column(name = "status")
 	@Enumerated(EnumType.ORDINAL)
+	@NotNull(message = "O campo StatusAtividadeEnum é Obrigatorio")
 	private StatusAtividadeEnum status;
 
 	public Long getIdAtividade() {

@@ -1,185 +1,113 @@
 package br.com.desafio.controller;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+
+
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
 
 import br.com.desafio.model.Atividade;
 import br.com.desafio.model.service.AtividadeService;
-import br.com.desafio.util.JsonConversor;
 
-@WebServlet("/atividade/*")
-public class AtividadeController extends HttpServlet{
-
-	private static final long serialVersionUID = 1L;
+@Named
+@Path("atividade")
+@Produces("application/json; charset=UTF-8")
+@Consumes("application/json; charset=UTF-8")
+@RequestScoped
+public class AtividadeController {
 	
-	private AtividadeService atividadeService = new AtividadeService();
-	
+	@Inject
+	private AtividadeService atividadeService;
 	
 	/* Requisições do tipo GET
 	 * Endpoints das requisiçoes:
 	 * http://{host}/desafio/atividade - Buscar todas as tividades
-	 * http://{host}/desafio/atividade/{id} - Buscar atividade por id
 	 * http://{host}/desafio/atividade?statusAtividade={status} - Buscar atividade por status
 	 * status = 0 - Atividades pendentes
 	 * status = 1 - Atividades concluídas
+	 */
+    @GET
+    public List<Atividade> buscarTodasAtividades(@QueryParam("statusAtividade") Integer status) {
+    	List<Atividade> atividades = null;
+    	if(status != null) {
+    		atividades = atividadeService.buscarAtividadesPorStatus(status);
+    	} else {
+    		atividades = atividadeService.buscarTodasAtividades();
+    	}
+        return atividades;
+    }
+    
+	/* Requisições do tipo GET
+	 * Endpoints da requisição:
+	 * http://{host}/desafio/atividade/{id} - Buscar atividade por id
 	 * 
 	 * Retorno no formato Json
 	 */
-	protected void doGet( HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String pathInfo = request.getPathInfo();
-		String parametro = request.getParameter("statusAtividade");
-		if (parametro == null) {
-			if(pathInfo == null || pathInfo.equals("/")){
-				List<Atividade> atividades = atividadeService.buscarTodasAtividades();
-				JsonConversor.objetoParaJson(response, atividades);
-				return;
-			}
-			Long idAtividade = this.verificarPath(pathInfo.split("/"));
-			if (idAtividade == -1L) {
-				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-				return;
-			} else {
-				Atividade atividade = this.atividadeService.buscarAtividade(idAtividade);
-				if(atividade == null) {
-					response.sendError(HttpServletResponse.SC_NOT_FOUND);
-					return;
-				} else {
-					JsonConversor.objetoParaJson(response, atividade);
-					return;
-				}
-			}
-		} else {
-			//Verifica se o parametro é válido
-			try {
-				Integer status = Integer.parseInt(parametro);
-				if (status == 0 || status == 1) {
-					List<Atividade> atividades = atividadeService.buscarAtividadesPorStatus(Integer.parseInt(parametro));
-					JsonConversor.objetoParaJson(response, atividades);
-					return;
-				} else {
-					JsonConversor.objetoParaJson(response, "Parametro Inválido");
-					return;
-				}
-			} catch(Exception ex) {
-				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-				return;
-			}
-		}
-	}
-	
-	/* Requisições do tipo POST
-	 * Endpoint da requisição:
-	 * http://{host}/desafio/atividade
-	 * 
-	 * Corpo da requisiçao e retorno no formato Json
-	 */
-	protected void doPost( HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String pathInfo = request.getPathInfo();
-		if(pathInfo == null || pathInfo.equals("/")){
-		    Atividade atividade = JsonConversor.jsonParaObjeto(request);
-		    Atividade atividadeSalva = atividadeService.gravarAtividade(atividade);
-		    JsonConversor.objetoParaJson(response, atividadeSalva);
-		}
-		else {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		}
-	}
-	
+    @GET
+    @Path("/{codigo}")
+    public Atividade buscarAtividade(@PathParam("codigo") Long codigo) {
+        return atividadeService.buscarAtividade(codigo);
+    }
+    
 	/* Requisições do tipo PUT
 	 * Endpoint da requisição:
 	 * http://{host}/desafio/atividade/{id}
 	 * 
 	 * Corpo da requisiçao formato Json e retorno boolean
 	 */
-	protected void doPut( HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException{
-		String pathInfo = request.getPathInfo();
-		if(pathInfo == null || pathInfo.equals("/")){
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		}
-		Long idAtividade = this.verificarPath(pathInfo.split("/"));
-		if (idAtividade == -1L) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		} else {
-			Atividade atividade = this.atividadeService.buscarAtividade(idAtividade);
-			if(atividade == null) {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND);
-				return;
-			} else {
-				Atividade atividadeNova = JsonConversor.jsonParaObjeto(request);
-			    atividadeNova.setIdAtividade(atividade.getIdAtividade());
-			    if(atividadeService.atualizarAtividade(atividadeNova)) {
-			    	JsonConversor.objetoParaJson(response, true);
-			    	return;
-			    } else {
-			    	JsonConversor.objetoParaJson(response, false);
-			    	return;
-			    }
-			    
-				
-			}
-		}	    
-	}
-
+    @PUT
+    @Path("/{codigo}")
+    public Boolean atualizarAtividade(Atividade atividade, @PathParam("codigo") Long codigo) {
+        atividade.setIdAtividade(codigo);
+    	return atividadeService.atualizarAtividade(atividade);
+    }
+    
 	/* Requisições do tipo DELETE
 	 * Endpoint da requisição:
 	 * http://{host}/desafio/atividade/{id}
 	 * 
 	 * Retorno boolean
 	 */
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		String pathInfo = request.getPathInfo();
-		if(pathInfo == null || pathInfo.equals("/")){
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		}
-		Long idAtividade = this.verificarPath(pathInfo.split("/"));
-		if (idAtividade == -1L) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		} else {
-			Atividade atividade = this.atividadeService.buscarAtividade(idAtividade);
-			if(atividade == null) {
-				response.sendError(HttpServletResponse.SC_NOT_FOUND);
-				return;
-			} else {
-				if(atividadeService.removerAtividade(atividade)) {
-					JsonConversor.objetoParaJson(response, true);
-					return;
-				} else {
-					response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-					return;
-				}
-			}
-		}
-	}
-	
-	
-	/**
-	 * Verifica se o path da requisição é válido, e retorna o ID da atividade, ou -1 caso o ID nao seja válido
+    @DELETE
+    @Path("/{codigo}")
+    public Boolean removerAtividade(@PathParam("codigo") Long codigo) {
+    	Atividade atividade = atividadeService.buscarAtividade(codigo);
+    	return atividadeService.removerAtividade(atividade);
+    }
+    
+	/* Requisições do tipo POST
+	 * Endpoint da requisição:
+	 * http://{host}/desafio/atividade
 	 * 
-	 * @param path
-	 * @return Long
+	 * Corpo da requisiçao e retorno no formato Json
 	 */
-	private Long verificarPath(String[] path) {
-		if(path.length != 2) {
-			return -1L;
-		} else {
-			try {
-				Long idAtividade = Long.parseLong(path[1]);
-				return idAtividade;
-			} catch (Exception ex) {
-				return -1L;
-			}
-		}
-	}
+    @POST
+    public Response salvar(@Valid Atividade atividade) {
+        try {
+            return Response.ok(atividadeService.gravarAtividade(atividade)).build();
+        } catch (ConstraintViolationException cvex) {
+            final Set<String> erros = cvex.getConstraintViolations().stream().map(ConstraintViolation::getMessage).collect(Collectors.toSet());
+            return Response.status(Response.Status.BAD_REQUEST).entity(erros).build();
+        } catch (Exception ex) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Instabilidade no serviço").build();
+        }
+    }
 
 }
